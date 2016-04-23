@@ -96,6 +96,33 @@ public class ApiGetMethods {
 
 		return jsonArray; // Returns the output from the SQL query
 	}
+	
+	
+	@Path("/getJournals")
+	@GET
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.APPLICATION_JSON)
+	public JSONArray getAllJournals(@HeaderParam("userid") String userid) {
+		
+		System.out.println(userid);
+		
+		JSONArray jsonArray = new JSONArray(); // Creates a JSON array for all
+												// the data retrieved from the
+												// query,
+												// This will be returned to the
+												// application
+		Schema dao = new Schema(); // Gives the call access to the Schema
+									// allowing the SQL queries to be made
+
+		try { // Attempt a call to the database
+			jsonArray = dao.qryGetJournals(userid);
+		} catch (Exception e) { // Print out to the console if the call is not
+								// completed
+			e.printStackTrace();
+		}
+
+		return jsonArray; // Returns the output from the SQL query
+	}
 
 	/**
 	 * 
@@ -232,7 +259,83 @@ public class ApiGetMethods {
 		return jsonArray; // Returns the output from the SQL query
 	}
 	
+	/**
+	 * 
+	 * @return JSON array of user id matching username and password
+	 * 
+	 *         The Get-User Method is used to authenticate the user
+	 * 
+	 */
+	@Path("/userSubject")
+	@POST
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	public void InsertUserSubject(@FormParam("userid") String userid, @FormParam("ids") String ids) {
+
+		try {
+			if (ids != null) {
+				ids = java.net.URLDecoder.decode(ids, "UTF-8").trim();
+			}
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		System.out.println(userid);
+		System.out.println(ids);
+		System.out.println("inserting...");
+
+		JSONArray jsonArray = new JSONArray(); // Creates a JSON array for all
+												// the data retrieved from the
+												// query,
+												// This will be returned to the
+												// application
+		Schema dao = new Schema(); // Gives the call access to the Schema
+									// allowing the SQL queries to be made
+
+		try { // Attempt a call to the database
+			int[] result = dao.qryInsertUserSubject(userid, ids);
+			System.out.println(result.length + "");
+		} catch (Exception e) { // Print out to the console if the call is not
+								// completed
+			e.printStackTrace();
+		}
+
+	}
 	
+	
+	@Path("/userJournal")
+	@POST
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	public synchronized void InsertUserJournal(@FormParam("userid") String userid, @FormParam("ids") String ids) {
+
+		try {
+			if (ids != null) {
+				ids = java.net.URLDecoder.decode(ids, "UTF-8").trim();
+			}
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		System.out.println(userid);
+		System.out.println(ids);
+		System.out.println("inserting...");
+
+		JSONArray jsonArray = new JSONArray(); // Creates a JSON array for all
+												// the data retrieved from the
+												// query,
+												// This will be returned to the
+												// application
+		Schema dao = new Schema(); // Gives the call access to the Schema
+									// allowing the SQL queries to be made
+
+		try { // Attempt a call to the database
+			int[] result = dao.qryInsertUserJournal(userid, ids);
+			System.out.println(result.length + "");
+		} catch (Exception e) { // Print out to the console if the call is not
+								// completed
+			e.printStackTrace();
+		}
+
+	}
 
 	/**
 	 * 

@@ -242,6 +242,19 @@ public int qryInsertUser(String username, String password) throws Exception{
 		ConvertToJson jsonConverter = new ConvertToJson();				//Create a variable to convert the result set to JSON
 		JSONArray jsonArray = new JSONArray();							//Create a JSON array that will later be used as the output value
 		
+		String[] splitIds = ids.split(",");
+		
+		int[] intIds = new int[splitIds.length];
+		String inString = "";
+		
+		for(int i = 0; i < intIds.length; i++) {
+			intIds[i] = Integer.valueOf(splitIds[i]);
+			inString += "?,";
+		}
+		
+		inString = inString.substring(0, inString.length()-1);
+
+		
 		try {
 			conn = connectToDatabase();									//Connect to the database
 
@@ -251,8 +264,13 @@ public int qryInsertUser(String username, String password) throws Exception{
 					+ "ON journals.idJournal = subject_journal.idJournal "
 					+ "JOIN subjects "
 					+ "ON subject_journal.idSubject = subjects.idSubject "
-					+ "WHERE subjects.idSubject IN (?)");		//Prepare the query searching for distinct subject names
-			qry.setString(1, ids);
+					+ "WHERE subjects.idSubject IN ("+inString+")");		//Prepare the query searching for distinct subject names
+			
+			int o = 1;
+			for(int i : intIds) {
+				qry.setInt(o, i);
+				o++;
+			}		
 			rs = qry.executeQuery();																		//Execute the prepared query
 			
 			jsonArray = jsonConverter.convertToJsonArray(rs);												//Convert the result set to JSON
@@ -274,6 +292,123 @@ public int qryInsertUser(String username, String password) throws Exception{
 		return jsonArray;												//Return the JSON array
 			
 		
+	}
+
+
+	public int[] qryInsertUserSubject(String userid, String ids) throws SQLException {
+		PreparedStatement qry = null;									//Create a statement that can later be used as an SQL call
+		Connection conn = null;											//Create a connection to that can be used to connect to the database
+		int[] result = null;											//Define a variable for the resulting data
+
+		String[] splitIds = ids.split(",");
+		
+		int[] intIds = new int[splitIds.length];
+		
+		for(int i = 0; i < intIds.length; i++) {
+			intIds[i] = Integer.valueOf(splitIds[i]);
+		}
+		
+		try {
+			conn = connectToDatabase();									//Connect to the database
+		
+			qry = conn.prepareStatement("INSERT INTO artrecdb.user_subject (idUser, idSubject) VALUES (?, ?)");		//Prepare the query searching for distinct subject names
+			System.out.println(userid);
+			for(int subject : intIds) {
+				qry.setInt(1, Integer.valueOf(userid));
+				qry.setInt(2, subject);
+				qry.addBatch();
+			}
+			result = qry.executeBatch();																		//Execute the prepared query			
+										//Convert the result set to JSON
+
+		} catch (SQLException e) {																			//Catch any Exceptions and print them to the console
+			e.printStackTrace();
+		} finally {
+			
+			if (qry != null) {											//If the query is empty close it.
+				qry.close();
+			}
+			if (conn != null) {											//If the connection is empty, close it.
+				conn.close();
+			}
+		}
+
+		return result;												//Return the JSON array
+	}
+	
+	public int[] qryInsertUserJournal(String userid, String ids) throws SQLException {
+		PreparedStatement qry = null;									//Create a statement that can later be used as an SQL call
+		Connection conn = null;											//Create a connection to that can be used to connect to the database
+		int[] result = null;											//Define a variable for the resulting data
+
+		String[] splitIds = ids.split(",");
+		
+		int[] intIds = new int[splitIds.length];
+		
+		for(int i = 0; i < intIds.length; i++) {
+			intIds[i] = Integer.valueOf(splitIds[i]);
+		}
+		
+		try {
+			conn = connectToDatabase();									//Connect to the database
+		
+			qry = conn.prepareStatement("INSERT INTO artrecdb.user_journal (idUser, idJournal) VALUES (?, ?)");		//Prepare the query searching for distinct subject names
+			System.out.println(userid);
+			for(int journal : intIds) {
+				qry.setInt(1, Integer.valueOf(userid));
+				qry.setInt(2, journal);
+				qry.addBatch();
+			}
+			result = qry.executeBatch();																		//Execute the prepared query			
+										//Convert the result set to JSON
+
+		} catch (SQLException e) {																			//Catch any Exceptions and print them to the console
+			e.printStackTrace();
+		} finally {
+			
+			if (qry != null) {											//If the query is empty close it.
+				qry.close();
+			}
+			if (conn != null) {											//If the connection is empty, close it.
+				conn.close();
+			}
+		}
+
+		return result;												//Return the JSON array
+	}
+
+
+	public JSONArray qryGetJournals(String userid) throws Exception {
+		PreparedStatement qry = null;									//Create a statement that can later be used as an SQL call
+		Connection conn = null;											//Create a connection to that can be used to connect to the database
+		ResultSet rs = null;											//Define a variable for the resulting data
+		ConvertToJson jsonConverter = new ConvertToJson();				//Create a variable to convert the result set to JSON
+		JSONArray jsonArray = new JSONArray();							//Create a JSON array that will later be used as the output value
+		
+		try {
+			conn = connectToDatabase();									//Connect to the database
+
+			qry = conn.prepareStatement("SELECT * FROM artrecdb.journals JOIN artrecdb.user_journal ON journals.idJournal = user_journal.idJournal WHERE idUser = ?");		//Prepare the query searching for distinct subject names
+			qry.setInt(1, Integer.valueOf(userid));
+			rs = qry.executeQuery();																		//Execute the prepared query
+			
+			jsonArray = jsonConverter.convertToJsonArray(rs);												//Convert the result set to JSON
+
+		} catch (SQLException e) {																			//Catch any Exceptions and print them to the console
+			e.printStackTrace();
+		} finally {
+			if (rs != null) {											//If the result set is empty close it
+				rs.close();
+			}
+			if (qry != null) {											//If the query is empty close it.
+				qry.close();
+			}
+			if (conn != null) {											//If the connection is empty, close it.
+				conn.close();
+			}
+		}
+
+		return jsonArray;												//Return the JSON array
 	}
 	
 	
