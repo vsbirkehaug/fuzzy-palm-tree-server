@@ -8,9 +8,11 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 
-
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -21,14 +23,16 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.artrec.dbutil.Schema;
+import com.artrec.model.Subject;
+import com.artrec.model.User;
 
 
 @Path("/v1")
-public class ApiGetMethods {
+public class ApiMethods {
 	
 	
 	//Default empty constructor so it can be called from the servlet
-	public ApiGetMethods() {}
+	public ApiMethods() {}
 	
 	
 	/**
@@ -40,7 +44,7 @@ public class ApiGetMethods {
 	 * There are no parameters as all subjects are retrieved.
 	 * 
 	 */
-	@Path("/getAllSubjects")
+	@Path("/subjects")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public JSONArray getAllSubjects(){
@@ -55,6 +59,85 @@ public class ApiGetMethods {
 	}
 	
 	return jsonArray;									//Returns the output from the SQL query
+	}
+	
+	
+
+	@Path("/users")
+	@POST
+	@Consumes (MediaType.APPLICATION_JSON)
+	public void postNewUser(String jsonRequest){
+	
+		JSONObject json = null;
+		try {
+			json = new JSONObject(jsonRequest);
+		} catch (JSONException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		User user = null;
+		try {
+			user = new User(json.getString("firstname"), json.getString("lastname"));
+		} catch (JSONException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		Schema dao = new Schema();							//Gives the call access to the Schema allowing the SQL queries to be made
+
+		try {												//Attempt a call to the database
+			dao.qryPostUser(user);
+		} catch (Exception e) {								//Print out to the console if the call is not completed
+			e.printStackTrace();
+		}
+	}
+	
+	
+	@Path("/subjects")
+	@POST
+	@Consumes (MediaType.APPLICATION_JSON)
+	public void postNewUserSubjects(String jsonRequest){
+	
+		System.out.println("Got subject post request");
+		JSONArray json = null;
+		try {
+			json = new JSONArray(jsonRequest);
+		} catch (JSONException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		ArrayList<Subject> subjects = new ArrayList<Subject>();
+		
+		JSONObject jsonUser;
+		User user = null;
+		try {
+			jsonUser = json.getJSONObject(0);
+			user = new User(jsonUser.getString("firstname"), jsonUser.getString("lastname"), jsonUser.getInt("id"));
+			System.out.println("Found user");
+		} catch (JSONException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		
+		try {
+			for(int i = 1; i < json.length(); i++) {
+				subjects.add(new Subject(json.getJSONObject(i).getString("subject")));
+			}
+			System.out.println("Found subjects: " + subjects.size());
+			
+		} catch (JSONException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		Schema dao = new Schema();							//Gives the call access to the Schema allowing the SQL queries to be made
+
+		try {												//Attempt a call to the database
+			System.out.println("trying to post subjects");
+			dao.qryPostUserSubjects(user, subjects);
+		} catch (Exception e) {								//Print out to the console if the call is not completed
+			e.printStackTrace();
+		}
 	}
 	
 	
