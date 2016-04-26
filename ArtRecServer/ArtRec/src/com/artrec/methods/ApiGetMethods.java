@@ -8,6 +8,7 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.sql.SQLException;
 
 import javax.servlet.http.Cookie;
 import javax.ws.rs.Consumes;
@@ -33,8 +34,28 @@ public class ApiGetMethods {
 
 	// Default empty constructor so it can be called from the servlet
 	public ApiGetMethods() {
-	}
+		//update();
 
+	}
+	
+
+	public int update() {
+		Schema dao = new Schema();
+		try {
+			dao.qryUpdateKeywords();
+			//dao.updateLatestArticles();
+			return 1;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return 0;
+	}	
+	
+	
 	/**
 	 * 
 	 * @return JSON array of all subjects
@@ -124,6 +145,33 @@ public class ApiGetMethods {
 		return jsonArray; // Returns the output from the SQL query
 	}
 
+	
+	@Path("/getProjectsForUser")
+	@GET
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.APPLICATION_JSON)
+	public JSONArray getProjectsForUser(@HeaderParam("userid") String userid) {
+		
+		System.out.println(userid);
+		
+		JSONArray jsonArray = new JSONArray(); // Creates a JSON array for all
+												// the data retrieved from the
+												// query,
+												// This will be returned to the
+												// application
+		Schema dao = new Schema(); // Gives the call access to the Schema
+									// allowing the SQL queries to be made
+
+		try { // Attempt a call to the database
+			jsonArray = dao.qryGetProjectsForUser(userid);
+		} catch (Exception e) { // Print out to the console if the call is not
+								// completed
+			e.printStackTrace();
+		}
+
+		return jsonArray; // Returns the output from the SQL query
+	}
+	
 	/**
 	 * 
 	 * @return JSON array of user id matching username and password
@@ -168,6 +216,53 @@ public class ApiGetMethods {
 		return jsonArray; // Returns the output from the SQL query
 	}
 	
+	
+	/**
+	 * 
+	 * @return JSON array of user id matching username and password
+	 * 
+	 *         The Get-User Method is used to authenticate the user
+	 * 
+	 */
+	
+	@Path("/userexists")
+	@GET
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.APPLICATION_JSON)
+	public JSONObject getUser(@HeaderParam("username") String username) {
+
+		try {
+			if (username != null) {
+				username = java.net.URLDecoder.decode(username, "UTF-8");
+			}
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		System.out.println(username);
+
+		boolean exists = true;
+		Schema dao = new Schema(); // Gives the call access to the Schema
+									// allowing the SQL queries to be made
+
+		try { // Attempt a call to the database
+			exists = dao.usernameExists(username.trim());
+			System.out.println(exists+ "");
+		} catch (Exception e) { // Print out to the console if the call is not
+								// completed
+			e.printStackTrace();
+		}
+
+		JSONObject response = new JSONObject();
+		try {
+			response.put("exists", exists);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return response; // Returns the output from the SQL query
+	}
+	
 	/**
 	 * 
 	 *         The Get-User Method is used to authenticate the user
@@ -205,6 +300,34 @@ public class ApiGetMethods {
 			System.out.println(jsonArray.length() + "");
 		} catch (Exception e) { // Print out to the console if the call is not
 								// completed
+			e.printStackTrace();
+		}
+
+		return jsonArray; // Returns the output from the SQL query
+	}
+	
+	@Path("/getArticlesForProject")
+	@GET
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.APPLICATION_JSON)
+	public JSONArray getArticlesForProject(@HeaderParam("userid") String idProject) throws UnsupportedEncodingException {
+		//IS REALLY PROJECT ID EVENTHOUGH IT IT CALLED USERID FOR METHOD REUSE
+		
+		
+		idProject = java.net.URLDecoder.decode(idProject, "UTF-8");
+		System.out.println(idProject);
+		
+
+		JSONArray jsonArray = new JSONArray(); 
+		Schema dao = new Schema(); 
+
+		try { 
+			jsonArray = dao.qryGetArticlesForProject(Integer.parseInt(idProject));
+			System.out.println(jsonArray.length() + "");
+			for(int i = 0; i < jsonArray.length(); i++) {
+				System.out.println(jsonArray.get(i).toString());
+			}
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
@@ -369,6 +492,31 @@ public class ApiGetMethods {
 
 		return jsonArray; // Returns the output from the SQL query
 	}
+	
+//	@Path("/getArticlesForJournalBySearch")
+//	@POST
+//	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+//	@Produces(MediaType.APPLICATION_JSON)
+//	public JSONArray getArticlesForJournalBySearch(@FormParam("issn") String journalISSN, @FormParam("searchterms") String[] searchTerms) {
+//	
+//		JSONArray jsonArray = new JSONArray(); // Creates a JSON array for all
+//												// the data retrieved from the
+//												// query,
+//												// This will be returned to the
+//												// application
+//		Schema dao = new Schema(); // Gives the call access to the Schema
+//									// allowing the SQL queries to be made
+//
+//		try { // Attempt a call to the database
+//			jsonArray = dao.qryGetArticlesForJournalBySearch(journalISSN, searchTerms);
+//		} catch (Exception e) { // Print out to the console if the call is not
+//								// completed
+//			e.printStackTrace();
+//		}
+//
+//		return jsonArray; // Returns the output from the SQL query
+//	}
+
 
 	/**
 	 * Reads in the character stream data and converts it to string
