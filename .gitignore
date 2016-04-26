@@ -48,3 +48,4 @@ proguard/
 ArtRec/build.xml
 ArtRecServer/.metadata/
 
+.metadata/*

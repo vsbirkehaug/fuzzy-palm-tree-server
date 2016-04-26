@@ -59,7 +59,6 @@ public class ConvertToJson {
 						jsonObj.put(colName, rs.getBoolean(colName));
 						System.out.println("ToJson: BOOLEAN");
 					}
-
 					
 					if (rsMetaData.getColumnType(i) == java.sql.Types.CHAR) {
 						jsonObj.put(colName, rs.getString(colName));
@@ -108,6 +107,11 @@ public class ConvertToJson {
 					if (rsMetaData.getColumnType(i) == java.sql.Types.TINYINT) {
 						jsonObj.put(colName, rs.getInt(colName));
 						System.out.println("ToJson: TINYINT");
+					}
+					
+					if (rsMetaData.getColumnType(i) == java.sql.Types.LONGVARCHAR) {
+						jsonObj.put(colName, rs.getString(colName));
+						System.out.println("ToJson: LONGVARCHAR");
 					}
 				}
 
