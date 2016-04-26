@@ -162,22 +162,27 @@ public class Schema extends DbUtil {
 			
 	}
 	
-public int qryInsertUser(String username, String password) throws Exception{
+public long qryInsertUser(String username, String password) throws Exception{
 		
 		PreparedStatement qry = null;									//Create a statement that can later be used as an SQL call
 		Connection conn = null;											//Create a connection to that can be used to connect to the database
-		int result = 0;											//Define a variable for the resulting data
+		ResultSet rs = null;											//Define a variable for the resulting data
 		ConvertToJson jsonConverter = new ConvertToJson();				//Create a variable to convert the result set to JSON
 		JSONArray jsonArray = new JSONArray();							//Create a JSON array that will later be used as the output value
+		long id = -1L;
 		
 		try {
 			conn = connectToDatabase();									//Connect to the database
 			
-			qry = conn.prepareStatement("INSERT INTO artrecdb.users (username, password) VALUES (?, ?)");		//Prepare the query searching for distinct subject names
+			qry = conn.prepareStatement("INSERT INTO artrecdb.users (username, password) VALUES (?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);		//Prepare the query searching for distinct subject names
 			qry.setString(1, username);
 			qry.setString(2, password);
-			result = qry.executeUpdate();																		//Execute the prepared query			
+			qry.executeUpdate();
+			rs = qry.getGeneratedKeys();																	//Execute the prepared query			
 										//Convert the result set to JSON
+			if (rs != null && rs.next()) {
+				id = rs.getLong(1);
+			}
 
 		} catch (SQLException e) {																			//Catch any Exceptions and print them to the console
 			e.printStackTrace();
@@ -191,7 +196,7 @@ public int qryInsertUser(String username, String password) throws Exception{
 			}
 		}
 
-		return result;												//Return the JSON array
+		return id;												//Return the JSON array
 			
 	}
 
@@ -436,7 +441,7 @@ public int qryInsertUser(String username, String password) throws Exception{
 		try {
 			conn = connectToDatabase();									//Connect to the database
 
-			qry = conn.prepareStatement("SELECT articles.idArticle, articles.title, articles.date "
+			qry = conn.prepareStatement("SELECT DISTINCT articles.idArticle, articles.title, articles.date "
 					+ "FROM artrecdb.articles "
 					+ "JOIN (SELECT keywords.keyword "
 					+ "FROM artrecdb.keywords "
@@ -445,7 +450,7 @@ public int qryInsertUser(String username, String password) throws Exception{
 					+ "WHERE projects.idProject = ?) "
 					+ "AS selected_project_keywords "
 					+ "ON articles.title LIKE CONCAT('%', selected_project_keywords.keyword,'%') "
-					+ "ORDER BY articles.title "
+					+ "ORDER BY articles.date DESC "
 					+ "LIMIT 20;");		//Prepare the query searching for distinct subject names
 				
 			qry.setInt(1, projectId);
@@ -620,7 +625,6 @@ public int qryInsertUser(String username, String password) throws Exception{
 		
 		try {
 			conn = connectToDatabase();									//Connect to the database
-		
 			qry = conn.prepareStatement("INSERT INTO artrecdb.user_subject (idUser, idSubject) VALUES (?, ?)");		//Prepare the query searching for distinct subject names
 			System.out.println(userid);
 			for(int subject : intIds) {

@@ -29,11 +29,11 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.artrec.dbutil.Schema;
 
-@Path("/v1")
-public class ApiGetMethods {
+@Path("/v1") 
+public class ApiMethods {
 
 	// Default empty constructor so it can be called from the servlet
-	public ApiGetMethods() {
+	public ApiMethods() {
 		//update();
 
 	}
@@ -370,8 +370,8 @@ public class ApiGetMethods {
 									// allowing the SQL queries to be made
 
 		try { // Attempt a call to the database
-			int result = dao.qryInsertUser(username.trim(), password.trim());
-			System.out.println(result + "");
+			long result = dao.qryInsertUser(username.trim(), password.trim());
+			System.out.println(result + " newuserid");
 			jsonArray = dao.qryAuthenticateUser(username.trim(), password.trim());
 			System.out.println(jsonArray.length() + "");
 		} catch (Exception e) { // Print out to the console if the call is not
