@@ -144,6 +144,30 @@ public class ApiMethods {
 
 		return jsonArray; // Returns the output from the SQL query
 	}
+	
+	@Path("/keywords")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public JSONArray getKeywords() {
+		
+		
+		JSONArray jsonArray = new JSONArray(); // Creates a JSON array for all
+												// the data retrieved from the
+												// query,
+												// This will be returned to the
+												// application
+		Schema dao = new Schema(); // Gives the call access to the Schema
+									// allowing the SQL queries to be made
+
+		try { // Attempt a call to the database
+			jsonArray = dao.qryGetKeywords();
+		} catch (Exception e) { // Print out to the console if the call is not
+								// completed
+			e.printStackTrace();
+		}
+
+		return jsonArray; // Returns the output from the SQL query
+	}
 
 	
 	@Path("/getProjectsForUser")
@@ -164,6 +188,32 @@ public class ApiMethods {
 
 		try { // Attempt a call to the database
 			jsonArray = dao.qryGetProjectsForUser(userid);
+		} catch (Exception e) { // Print out to the console if the call is not
+								// completed
+			e.printStackTrace();
+		}
+
+		return jsonArray; // Returns the output from the SQL query
+	}
+	
+	@Path("/getSubjectsForUser")
+	@GET
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.APPLICATION_JSON)
+	public JSONArray getSubjectsForUser(@HeaderParam("userid") String userid) {
+		
+		System.out.println(userid);
+		
+		JSONArray jsonArray = new JSONArray(); // Creates a JSON array for all
+												// the data retrieved from the
+												// query,
+												// This will be returned to the
+												// application
+		Schema dao = new Schema(); // Gives the call access to the Schema
+									// allowing the SQL queries to be made
+
+		try { // Attempt a call to the database
+			jsonArray = dao.qryGetSubjectsForUser(userid);
 		} catch (Exception e) { // Print out to the console if the call is not
 								// completed
 			e.printStackTrace();
@@ -416,6 +466,35 @@ public class ApiMethods {
 
 		try { // Attempt a call to the database
 			int[] result = dao.qryInsertUserSubject(userid, ids);
+			System.out.println(result.length + "");
+		} catch (Exception e) { // Print out to the console if the call is not
+								// completed
+			e.printStackTrace();
+		}
+
+	}
+	
+	@Path("/project")
+	@POST
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	public void InsertProject(@FormParam("userid") int userid, @FormParam("title") String title, @FormParam("ids") String ids) {
+
+		try {
+			if (ids != null) {
+				ids = java.net.URLDecoder.decode(ids, "UTF-8").trim();
+			}
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		System.out.println(ids);
+
+		Schema dao = new Schema(); // Gives the call access to the Schema
+									// allowing the SQL queries to be made
+
+		try { // Attempt a call to the database
+			int[] result = dao.qryInsertProject(userid, title, ids);
 			System.out.println(result.length + "");
 		} catch (Exception e) { // Print out to the console if the call is not
 								// completed

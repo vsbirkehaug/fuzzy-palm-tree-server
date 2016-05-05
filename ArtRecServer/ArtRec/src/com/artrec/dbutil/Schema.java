@@ -86,6 +86,41 @@ public class Schema extends DbUtil {
 			
 	}
 	
+	public JSONArray qryGetKeywords() throws Exception{
+		
+		PreparedStatement qry = null;									//Create a statement that can later be used as an SQL call
+		Connection conn = null;											//Create a connection to that can be used to connect to the database
+		ResultSet rs = null;											//Define a variable for the resulting data
+		ConvertToJson jsonConverter = new ConvertToJson();				//Create a variable to convert the result set to JSON
+		JSONArray jsonArray = new JSONArray();							//Create a JSON array that will later be used as the output value
+		
+		try {
+			conn = connectToDatabase();									//Connect to the database
+			
+			qry = conn
+					.prepareStatement("SELECT * FROM artrecdb.keywords ORDER BY keyword");		//Prepare the query searching for distinct subject names
+			rs = qry.executeQuery();																		//Execute the prepared query
+			
+			jsonArray = jsonConverter.convertToJsonArray(rs);												//Convert the result set to JSON
+
+		} catch (SQLException e) {																			//Catch any Exceptions and print them to the console
+			e.printStackTrace();
+		} finally {
+			if (rs != null) {											//If the result set is empty close it
+				rs.close();
+			}
+			if (qry != null) {											//If the query is empty close it.
+				qry.close();
+			}
+			if (conn != null) {											//If the connection is empty, close it.
+				conn.close();
+			}
+		}
+
+		return jsonArray;												//Return the JSON array
+			
+	}
+	
 	  public boolean usernameExists(String user) throws SQLException {
 			
 			PreparedStatement qry = null;									//Create a statement that can later be used as an SQL call
@@ -650,6 +685,38 @@ public long qryInsertUser(String username, String password) throws Exception{
 		return result;												//Return the JSON array
 	}
 	
+	public int[] qryInsertProjectKeyword(int idProject, int[] idKeywords) throws SQLException {
+		PreparedStatement qry = null;									//Create a statement that can later be used as an SQL call
+		Connection conn = null;											//Create a connection to that can be used to connect to the database
+		int[] result = null;											//Define a variable for the resulting data
+
+		
+		try {
+			conn = connectToDatabase();									//Connect to the database
+			qry = conn.prepareStatement("INSERT INTO artrecdb.project_keyword (idProject, idKeyword) VALUES (?, ?)");		//Prepare the query searching for distinct subject names
+			for(int keyword : idKeywords) {
+				qry.setInt(1, idProject);
+				qry.setInt(2, keyword);
+				qry.addBatch();
+			}
+			result = qry.executeBatch();																		//Execute the prepared query			
+										//Convert the result set to JSON
+
+		} catch (SQLException e) {																			//Catch any Exceptions and print them to the console
+			e.printStackTrace();
+		} finally {
+			
+			if (qry != null) {											//If the query is empty close it.
+				qry.close();
+			}
+			if (conn != null) {											//If the connection is empty, close it.
+				conn.close();
+			}
+		}
+
+		return result;												//Return the JSON array
+	}
+	
 	public int[] qryInsertUserJournal(String userid, String ids) throws SQLException {
 		PreparedStatement qry = null;									//Create a statement that can later be used as an SQL call
 		Connection conn = null;											//Create a connection to that can be used to connect to the database
@@ -763,6 +830,91 @@ public long qryInsertUser(String username, String password) throws Exception{
 			String[] searchTerms) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public JSONArray qryGetSubjectsForUser(String userid) throws Exception {
+		PreparedStatement qry = null;									//Create a statement that can later be used as an SQL call
+		Connection conn = null;											//Create a connection to that can be used to connect to the database
+		ResultSet rs = null;											//Define a variable for the resulting data
+		ConvertToJson jsonConverter = new ConvertToJson();				//Create a variable to convert the result set to JSON
+		JSONArray jsonArray = new JSONArray();							//Create a JSON array that will later be used as the output value
+		
+		try {
+			conn = connectToDatabase();									//Connect to the database
+			
+			qry = conn
+					.prepareStatement("SELECT subjects.title, subjects.idSubject "
+							+ "FROM artrecdb.subjects JOIN artrecdb.user_subject ON idSubject "
+							+ "JOIN artrecdb.users ON user_subject.idUser = users.id "
+							+ "WHERE users.id = ? "
+							+ "ORDER BY title");		//Prepare the query searching for distinct subject names
+			qry.setInt(1, Integer.valueOf(userid));
+			rs = qry.executeQuery();																		//Execute the prepared query
+			
+			jsonArray = jsonConverter.convertToJsonArray(rs);												//Convert the result set to JSON
+
+		} catch (SQLException e) {																			//Catch any Exceptions and print them to the console
+			e.printStackTrace();
+		} finally {
+			if (rs != null) {											//If the result set is empty close it
+				rs.close();
+			}
+			if (qry != null) {											//If the query is empty close it.
+				qry.close();
+			}
+			if (conn != null) {											//If the connection is empty, close it.
+				conn.close();
+			}
+		}
+
+		return jsonArray;												//Return the JSON array
+	}
+
+	public int[] qryInsertProject(int userid, String title, String ids) throws SQLException {
+		
+		PreparedStatement qry = null;									//Create a statement that can later be used as an SQL call
+		Connection conn = null;											//Create a connection to that can be used to connect to the database
+		ResultSet rs = null;											//Define a variable for the resulting data
+		ConvertToJson jsonConverter = new ConvertToJson();				//Create a variable to convert the result set to JSON
+		JSONArray jsonArray = new JSONArray();							//Create a JSON array that will later be used as the output value
+		long id = -1L;
+		
+		String[] splitIds = ids.split(",");
+		
+		int[] intIds = new int[splitIds.length];
+		String inString = "";
+		
+		for(int i = 0; i < intIds.length; i++) {
+			intIds[i] = Integer.valueOf(splitIds[i]);
+		}
+		
+		try {
+			conn = connectToDatabase();									//Connect to the database
+			
+			qry = conn.prepareStatement("INSERT INTO artrecdb.projects (idUser, title) VALUES (?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);		//Prepare the query searching for distinct subject names
+			qry.setInt(1, userid);
+			qry.setString(2, title);
+			qry.executeUpdate();
+			rs = qry.getGeneratedKeys();																	//Execute the prepared query			
+										//Convert the result set to JSON
+			if (rs != null && rs.next()) {
+				id = rs.getLong(1);
+			}
+
+		} catch (SQLException e) {																			//Catch any Exceptions and print them to the console
+			e.printStackTrace();
+		} finally {
+			
+			if (qry != null) {											//If the query is empty close it.
+				qry.close();
+			}
+			if (conn != null) {											//If the connection is empty, close it.
+				conn.close();
+			}
+		}
+		System.out.println("New project id: " + id);
+		
+		return qryInsertProjectKeyword(Integer.valueOf(String.valueOf(id)), intIds);
 	}
 	
 	
